@@ -7,7 +7,7 @@ import base64
 import json
 from bs4 import BeautifulSoup
 from datetime import datetime
-from model.Message import Message
+from model.Message import Message, Attachment
 
 user_id = 'me'
 label_inbox = 'INBOX'
@@ -62,7 +62,7 @@ class Mail:
     def get_message(self, msg_id):
         # possible formats: ['full', 'metadata', 'minimal', 'raw']
         subject = None
-        msg = self.service.users().messages().get(userId='me', id=msg_id, format='full', prettyPrint=True).execute()
+        msg = self.service.users().messages().get(userId='me', id=msg_id).execute()
 
         # parse date
         date = float(msg['internalDate']) / 1000
@@ -74,6 +74,22 @@ class Mail:
             if header['name'] == 'Subject':
                 subject = header['value']
 
+        # parse attachments
+        attachments_raw = []
+        for part in msg['payload']['parts']:
+            if part['filename']:
+                attachments_raw.append((part['filename'], part['body']['attachmentId']))
+
+        attachments = []
+        for attachment in attachments_raw:
+            att = self.service.users().messages().attachments().get(
+                userId='me', id=attachment[1], messageId=msg_id).execute()
+            data = att['data']
+
+            file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
+
+            attachments.append(Attachment(attachment[0], file_data))
+
         # parse body
         parts = msg['payload']['parts']
         if self.is_contains_attachment(parts):
@@ -84,7 +100,7 @@ class Mail:
         soup = BeautifulSoup(clean, "lxml")
         body = soup.body()
 
-        return Message(date, subject, body)
+        return Message(date, subject, body, attachments)
 
 
     def get_message_text(self, msg_id):
@@ -110,7 +126,7 @@ class Mail:
 def main():
     a = Mail()
     a.build_service()
-    last_msg = a.get__inbox_message(0)
+    last_msg = a.get__inbox_message(3)
 
     msg = a.get_message(last_msg['id'])
     print(msg)

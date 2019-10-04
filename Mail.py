@@ -98,7 +98,7 @@ class Mail:
             data = parts[0]['body']['data']
         clean = base64.urlsafe_b64decode(data)
         soup = BeautifulSoup(clean, "lxml")
-        body = soup.body()
+        body = soup.find_all('p')[0].text
 
         return Message(date, subject, body, attachments)
 

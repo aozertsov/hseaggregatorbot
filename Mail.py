@@ -21,8 +21,8 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 class Mail:
 
     def __init__(self):
-        creds = None
-        service = None
+        self.creds = None
+        self.service = None
 
     def build_service(self):
         if os.path.exists(token_pickle_path):
@@ -130,6 +130,7 @@ def main():
 
     msg = a.get_message(last_msg['id'])
     print(msg)
+
 
 if __name__ == '__main__':
     main()

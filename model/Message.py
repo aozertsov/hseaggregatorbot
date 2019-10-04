@@ -1,7 +1,6 @@
 class Message:
 
     def __init__(self, dates, subject, body, attachments = None):
-        print(attachments)
         self.date = dates
         self.subject = subject
         self.body = body

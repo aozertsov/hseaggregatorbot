@@ -24,7 +24,7 @@ def main():
                     config.LAST_MESSAGE_ID = fist_message_id
                     break
 
-        time.sleep(10)
+        time.sleep(config.SLEEP_TIME_IN_SECONDS)
 
 
 if __name__ == '__main__':

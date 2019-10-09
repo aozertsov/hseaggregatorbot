@@ -42,14 +42,17 @@ class Mail:
                 pickle.dump(self.creds, token)
         self.service = build('gmail', 'v1', credentials=self.creds)
 
-    def get_messages(self, labels = [], index = None):
-        msgs = self.service.users().messages().list(userId='me', labelIds=labels).execute()
-        messages = msgs.get('messages', [])
+    def get_messages(self, labels=[], index=None):
+        try:
+            msgs = self.service.users().messages().list(userId='me', labelIds=labels).execute()
+            messages = msgs.get('messages', [])
 
-        if index is None:
-            return messages
-        else:
-            return messages[index]
+            if index is None:
+                return messages
+            else:
+                return messages[index]
+        except Exception:
+            return []
 
     def get_unread_mesages(self):
         return self.get_messages([label_inbox, label_unread])
@@ -93,16 +96,23 @@ class Mail:
 
         # parse body
         parts = msg['payload']['parts']
-        if self.is_contains_attachment(parts):
-            data =  parts[0]['parts'][0]['body']['data']
-        else:
-            data = parts[0]['body']['data']
+
+        data = self._get_data(parts)
         clean = base64.urlsafe_b64decode(data)
         soup = BeautifulSoup(clean, "lxml")
         body = soup.find_all('p')[0].text
 
         return Message(date, subject, body, attachments)
 
+    def _get_data(self, parts):
+        part = parts[0]
+        # print('first part: {}'.format(part))
+        while not 'data' in part['body'].keys():
+            # print('body: {}'.format(part['body']))
+            part = part['parts'][0]
+            # print('new part: {}'.format(part))
+        # print(part['body']['data'])
+        return part['body']['data']
 
     def get_message_text(self, msg_id):
         # possible formats: ['full', 'metadata', 'minimal', 'raw']
@@ -110,7 +120,7 @@ class Mail:
 
         parts = msg['payload']['parts']
         if self.is_contains_attachment(parts):
-            data =  parts[0]['parts'][0]['body']['data']
+            data = parts[0]['parts'][0]['body']['data']
         else:
             data = parts[0]['body']['data']
         clean = base64.urlsafe_b64decode(data)

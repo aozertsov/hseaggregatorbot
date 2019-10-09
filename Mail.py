@@ -18,6 +18,7 @@ credentials_path = 'credentials.json'
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
+
 class Mail:
 
     def __init__(self):
@@ -56,7 +57,7 @@ class Mail:
     def get_last_message(self):
         return self.get_messages([label_inbox], 0)
 
-    def get__inbox_message(self, index = 0):
+    def get__inbox_message(self, index=0):
         return self.get_messages([label_inbox], index)
 
     def get_message(self, msg_id):
@@ -122,6 +123,7 @@ class Mail:
             if part['filename']:
                 return True
         return False
+
 
 def main():
     a = Mail()
